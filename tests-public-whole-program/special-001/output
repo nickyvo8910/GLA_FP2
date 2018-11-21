@@ -1,0 +1,12 @@
+tafl> 
+Starting Game.
+tafl game O> 
+State loaded from board.csv
+tafl game L> 
+Move Successful
+tafl game O> 
+Move Successful
+tafl game L> 
+Invalid Move!
+tafl game L> 
+Good Bye!

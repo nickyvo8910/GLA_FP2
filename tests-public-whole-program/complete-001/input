@@ -1,0 +1,27 @@
+:start
+:move d1 d3
+:move d5 c5
+:move d5 d4
+:move f1 f3
+:move g5 g4
+:move f3 f4
+:move e7 d7
+:move i4 h4
+:move c5 c3
+:move b5 b3
+:move e5 d5
+:move a5 c5
+:move d7 d6
+:move f9 f6
+:move d6 b6
+:move d9 d6
+:move b6 b5
+:move e2 e4
+:move e2 e3
+:mive b5 a5
+:move b5 a5
+:move a4 c4
+:move a5 a4
+:move e3 e4 
+:stop
+:exit
