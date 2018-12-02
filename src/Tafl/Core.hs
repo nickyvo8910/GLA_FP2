@@ -25,7 +25,7 @@ import Data.List
 
 --Represent pieces on the game board
 type Loc = (Int, Int)
-data Piece = O | G | L | X | E | Err deriving (Show, Read, Eq, Ord)
+data Piece = O | G | L | X | E | R deriving (Show, Read, Eq, Ord)
 data Side = Lambdas | Objects deriving (Show,Eq)
 type Board = [String]
 
@@ -58,7 +58,7 @@ defaultGamePlacing =["   OOO   ",
 
 --Switching side after each move
 switchSide :: GameState -> GameState
-switchSide inState = inState{gameTurn = if gameTurn inState == Lambdas then Objects else Lambdas}
+switchSide inState = inState{gameTurn = (if gameTurn inState == Lambdas then Objects else Lambdas)}
 
 defaultGameState :: GameState
 defaultGameState = GameState False False Objects defaultGamePlacing

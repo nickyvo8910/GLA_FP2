@@ -63,19 +63,29 @@ processCommand st (Move src des) = do
               -- putStr("Validity: ")
               -- putStrLn (show (isValidPath st (stringToLoc src) (stringToLoc des)))
 
-              if (isValidPath st (stringToLoc src) (stringToLoc des))
-                then
-                  do
-                    let afterMoveSt = doMoving st (stringToLoc src) (stringToLoc des)
-                    let newSt = switchSide afterMoveSt
-                    putStrLn ("Move Successful")
-                    -- putStrLn (stateToString afterMoveSt)
-                    pure $ Right afterMoveSt
-                else
-                  do
-                    pure $ Left (InvalidMove)
-    else
-     do pure $ Left (NotReadyCommand)
+              -- Check if the srcTYpe matches the turn
+              let srcLoc = stringToLoc src
+              let desLoc = stringToLoc des
+
+              let srcType = locToPiece st (stringToLoc src)
+
+
+              if (srcType == O && gameTurn st == Objects)||(srcType == L && gameTurn st == Lambdas)||(srcType == G && gameTurn st == Lambdas)
+                then do
+                  -- Check if the path is valid
+                  if isValidPath st srcLoc desLoc
+                    then do
+                      putStrLn ("Move Successful")
+                      --DoMoving
+                      let newMove = doMoving st srcLoc desLoc
+                      --DoCapture
+
+                      --switchSide
+                      let newSide = switchSide $ newMove
+                      pure $ Right newSide
+                  else do pure $ Left (InvalidMove)
+              else do pure $ Left (InvalidMove)
+    else do pure $ Left (NotReadyCommand)
 
 processCommand st (Save fname) = do
   if(inGame st == True)

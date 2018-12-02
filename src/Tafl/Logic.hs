@@ -34,7 +34,7 @@ charToPiece char
  | char == 'L' = L
  | char == 'X' = X
  | char == ' ' = E
- | otherwise = E
+ | otherwise = R
 
 stringToPiece:: String -> Piece
 stringToPiece str
@@ -44,7 +44,7 @@ stringToPiece str
  | str == "X" = X
  | str == " " = E
  | str == "E" = E
- | otherwise = Err
+ | otherwise = R
 
 pieceToChar :: Piece ->Char
 pieceToChar pType
@@ -53,7 +53,7 @@ pieceToChar pType
  | pType == L = 'L'
  | pType == X = 'X'
  | pType == E = ' '
- | otherwise = ' '
+ | otherwise = 'R'
 
 pieceToString :: Piece ->String
 pieceToString pType
@@ -62,7 +62,7 @@ pieceToString pType
  | pType == L = "L"
  | pType == X = "X"
  | pType == E = " "
- | otherwise = " "
+ | otherwise = "R"
 
 --Converting src & des strings into Loc type
 stringToLoc:: String -> Loc
@@ -73,7 +73,7 @@ stringToLoc (col:row) = (rowIndex, colIndex)
 
 --Getting the chess piece at a specific location
 locToPiece:: GameState -> Loc -> Piece
-locToPiece inState (letter, no) = charToPiece $(gameBoard inState !! no) !! letter
+locToPiece inState (letter, no) = charToPiece ((gameBoard inState) !! no !! letter)
 
 --Checking if the location is in the range (0~8)
 isValidLoc :: Loc -> Bool
@@ -150,7 +150,6 @@ isCrossCentral :: [Loc] ->Bool
 isCrossCentral path = elem (5,5) path
 
 --TO MOVE
---check if the path is valid
 --set src to E
 --set des to <TYPE>
 --return GameState
@@ -158,19 +157,12 @@ doMoving:: GameState -> Loc -> Loc -> GameState
 doMoving inState src des = newGameState
   where
     srcType = locToPiece inState src
-    desType = locToPiece inState des
-    newGameState = placePiece (placePiece inState src E) des srcType
-
+    newGameBoard = placePiece (placePiece (gameBoard inState) src E) des srcType
+    newGameState = inState{gameBoard =newGameBoard}
   --Subfunction placePiece --> Placing a piece on the board
-placePiece :: GameState -> Loc -> Piece -> GameState
-placePiece inState (rowIndex, colIndex) newType = newState
+placePiece :: Board -> Loc -> Piece -> Board
+placePiece inBoard (rowIndex, colIndex) newType = newGameBoard
   where
-    targetRow =  gameBoard inState !! rowIndex
+    targetRow =  inBoard !! rowIndex
     modifiedRow = (take colIndex targetRow) ++ pieceToString newType ++ (drop (colIndex+1) targetRow)
-    newGameBoard = (take rowIndex (gameBoard inState)) ++ [modifiedRow] ++ (drop(rowIndex+1)(gameBoard inState))
-    newState = GameState{
-    inGame = inGame inState,
-    inTestMode = inTestMode inState,
-    gameTurn = gameTurn inState,
-    gameBoard = newGameBoard
-    }
+    newGameBoard = (take rowIndex inBoard) ++ [modifiedRow] ++ (drop(rowIndex+1)inBoard)
