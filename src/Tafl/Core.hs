@@ -13,7 +13,6 @@ module Tafl.Core
   , initGameState
   , commandFromString
   , help_text
-  , switchSide
   ) where
 import System.Exit
 import Data.List
@@ -56,21 +55,14 @@ defaultGamePlacing =["   OOO   ",
                     "   OOO   "]
 
 
---Switching side after each move
-switchSide :: GameState -> GameState
-switchSide inState = inState{gameTurn = (if gameTurn inState == Lambdas then Objects else Lambdas)}
-
 defaultGameState :: GameState
 defaultGameState = GameState False False Objects defaultGamePlacing
-
--- defaultGamePlacing :: Board ->Board
--- defaultGamePlacing inBoard = Board{gameBoard =defaultGameBoard}
 
 -- Finish initGameState to read a board state from file.
 initGameState :: Maybe FilePath
               -> Bool
               -> IO (Either TaflError GameState)
-initGameState Nothing  b = pure $ Right $ GameState False b Objects defaultGamePlacing
+initGameState Nothing  b = pure $ Right $ GameState False b Objects [""]
 initGameState (Just f) b = pure $ Left NotYetImplemented
 
 -- | Errors encountered by the game, you will need to extend this to capture *ALL* possible errors.

@@ -32,7 +32,7 @@ processCommand st Start = do
     then do pure $ Left (InvalidCommand "Can't Start")
     else
      do
-       let newSt = st {inGame=True}
+       let newSt = (defaultGameState){inGame=True}
        putStrLn "Starting Game."
        -- putStrLn (stateToString newSt)
        pure $ Right newSt
@@ -111,7 +111,9 @@ processCommand st (Show) = do
         putStrLn (stateToString st)
         pure $ Right st
     else
-      do pure $ Left (NotReadyCommand)
+      do
+        putStrLn (stateToString st)
+        pure $ Left (NotReadyCommand)
 
 processCommand st _ = pure $ Left (UnknownCommand)
 

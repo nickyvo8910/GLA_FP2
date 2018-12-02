@@ -6,6 +6,7 @@ In this module you should define your game's logic and expose that logic through
 
 module Tafl.Logic
   (stateToString
+  ,switchSide
   ,locToPiece
   ,stringToLoc
   ,isValidPath
@@ -14,6 +15,10 @@ module Tafl.Logic
   ) where
 import Tafl.Core
 --------------Game Logic-----------
+
+--Switching side after each move
+switchSide :: GameState -> GameState
+switchSide inState = inState{gameTurn = (if gameTurn inState == Lambdas then Objects else Lambdas)}
 
 --Board to string
 
