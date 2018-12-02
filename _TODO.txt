@@ -1,0 +1,10 @@
+Show the board --DONE
+Place the set --DONE
+Menu -- DONE
+turn -- Done
+move
+pieces interactions
+game outcome
+save/load
+validate input
+help

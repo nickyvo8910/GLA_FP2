@@ -19,6 +19,7 @@ import Tafl.Logic
 processCommand :: GameState
                -> Command
                -> IO (Either TaflError GameState)
+
 processCommand st Help = do
   putStrLn help_text
   pure $ Right st
@@ -27,18 +28,85 @@ processCommand st Exit = do
   exitWith ExitSuccess
 
 processCommand st Start = do
-   let newSt = st {inGame=True}
-   putStrLn "Starting Game."
-   pure $ Right newSt
+  if(inGame st == True)
+    then do pure $ Left (InvalidCommand "Can't Start")
+    else
+     do
+       let newSt = st {inGame=True}
+       putStrLn "Starting Game."
+       -- putStrLn (stateToString newSt)
+       pure $ Right newSt
 
 processCommand st Stop = do
-   let newSt = st {inGame=False}
-   putStrLn "Stopping Game."
-   pure $ Right newSt
+  if(inGame st == False)
+    then do pure $ Left (InvalidCommand "Can't Stop")
+    else
+      do
+        let newSt = defaultGameState
+        putStrLn "Stopping Game."
+        pure $ Right newSt
 
 -- The remaining commands are to be added here.
 
+processCommand st (Move src des) = do
+  if(inGame st == True)
+    then
+      do
+        if (length(src)/=2 ||length(des)/=2 ) then do pure $ Left (MalformedCommand)
+          else
+            do
+              -- putStr("Source: " ++ src )
+              -- putStrLn(show $ locToPiece st (stringToLoc src))
+              -- putStr("Des: " ++ des )
+              -- putStrLn(show $ locToPiece st (stringToLoc des))
+              --
+              -- putStr("Validity: ")
+              -- putStrLn (show (isValidPath st (stringToLoc src) (stringToLoc des)))
+
+              if (isValidPath st (stringToLoc src) (stringToLoc des))
+                then
+                  do
+                    let afterMoveSt = doMoving st (stringToLoc src) (stringToLoc des)
+                    let newSt = switchSide afterMoveSt
+                    putStrLn ("Move Successful")
+                    -- putStrLn (stateToString afterMoveSt)
+                    pure $ Right afterMoveSt
+                else
+                  do
+                    pure $ Left (InvalidMove)
+    else
+     do pure $ Left (NotReadyCommand)
+
+processCommand st (Save fname) = do
+  if(inGame st == True)
+    then
+      do
+        putStrLn ("State saved in " ++ fname)
+        pure $ Right st
+    else
+      do pure $ Left (NotReadyCommand)
+
+processCommand st (Load fname) = do
+  if(inGame st == False)
+    then
+      do
+        let newSt = st {inGame=True}
+        putStrLn ("State loaded from " ++ fname)
+        pure $ Right newSt
+    else
+      do pure $ Left (NotReadyCommand)
+
+processCommand st (Show) = do
+  if(inGame st == True)
+    then
+      do
+        putStrLn (stateToString st)
+        pure $ Right st
+    else
+      do pure $ Left (NotReadyCommand)
+
 processCommand st _ = pure $ Left (UnknownCommand)
+
 
 
 -- | Process a user given command presented as a String, and update
@@ -54,10 +122,16 @@ processCommandStr st str =
 
 -- | Print an Error to STDOUT.
 printError :: TaflError -> IO ()
+printError (InvalidMove) = do
+  putStrLn "Invalid Move!"
 printError (NotYetImplemented) = do
   putStrLn "Not Yet Implemented."
 printError (UnknownCommand) = do
   putStrLn "The command was not recognised"
+printError (MalformedCommand) = do
+  putStrLn "The entered command was malformed."
+printError (NotReadyCommand) = do
+  putStrLn "The command cannot be used."
 printError (InvalidCommand msg) = do
   putStrLn "You entered an invalid command:"
   putStr "\t"

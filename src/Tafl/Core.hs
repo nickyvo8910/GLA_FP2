@@ -5,12 +5,16 @@ module Tafl.Core
   ( GameState(..)
   , TaflError(..)
   , Command(..)
+  , Piece(..)
+  , Loc
+  , Board
+  , Side(..)
   , defaultGameState
   , initGameState
   , commandFromString
   , help_text
+  , switchSide
   ) where
-
 import System.Exit
 import Data.List
 
@@ -18,31 +22,74 @@ import Data.List
 -- whether we are playing a game or not.
 --
 -- You will need to extend this to present the board.
+
+--Represent pieces on the game board
+type Loc = (Int, Int)
+data Piece = O | G | L | X | E | Err deriving (Show, Read, Eq, Ord)
+data Side = Lambdas | Objects deriving (Show,Eq)
+type Board = [String]
+
 data GameState = GameState
   { inGame     :: Bool
   , inTestMode :: Bool
+  , gameTurn   :: Side
+  , gameBoard  :: Board
   }
 
+  -- defaultGamePlacing =["EEEOOOEEE",
+  --                     "EEEEOEEEE",
+  --                     "EEEEGEEEE",
+  --                     "OEEEGEEEO",
+  --                     "OOGGLGGOO",
+  --                     "OEEEGEEEO",
+  --                     "EEEEGEEEE",
+  --                     "EEEEOEEEE",
+  --                     "EEEOOOEEE"]
+defaultGamePlacing =["   OOO   ",
+                    "    O    ",
+                    "    G    ",
+                    "O   G   O",
+                    "OOGGLGGOO",
+                    "O   G   O",
+                    "    G    ",
+                    "    O    ",
+                    "   OOO   "]
+
+
+--Switching side after each move
+switchSide :: GameState -> GameState
+switchSide inState = inState{gameTurn = if gameTurn inState == Lambdas then Objects else Lambdas}
+
 defaultGameState :: GameState
-defaultGameState = GameState False False
+defaultGameState = GameState False False Objects defaultGamePlacing
+
+-- defaultGamePlacing :: Board ->Board
+-- defaultGamePlacing inBoard = Board{gameBoard =defaultGameBoard}
 
 -- Finish initGameState to read a board state from file.
 initGameState :: Maybe FilePath
               -> Bool
               -> IO (Either TaflError GameState)
-initGameState Nothing  b = pure $ Right $ GameState False b
+initGameState Nothing  b = pure $ Right $ GameState False b Objects defaultGamePlacing
 initGameState (Just f) b = pure $ Left NotYetImplemented
 
 -- | Errors encountered by the game, you will need to extend this to capture *ALL* possible errors.
 data TaflError = InvalidCommand String
                | UnknownCommand
                | NotYetImplemented
+               | MalformedCommand
+               | NotReadyCommand
+               | InvalidMove
 
 -- | REPL commands, you will need to extend this to capture all permissible REPL commands.
 data Command = Help
              | Exit
              | Start
              | Stop
+             | Move String String
+             | Load String
+             | Save String
+             | Show
 
 -- | Try to construct a command from the given string.
 commandFromString :: String -> Either TaflError Command
@@ -52,6 +99,17 @@ commandFromString (':':rest) =
     ["exit"] -> Right Exit
     ["start"] -> Right Start
     ["stop"]  -> Right Stop
+    ["move",src,des] -> Right (Move src des)
+
+    ["load",fname] ->Right (Load fname)
+    ["save",fname] ->Right (Save fname)
+
+    ["move",_] -> Left MalformedCommand
+    ["load",_] -> Left MalformedCommand
+    ["save",_] -> Left MalformedCommand
+
+    ["show"] -> Right Show
+
 
     -- You need to specify how to recognise the remaining commands and their arguments here.
 
@@ -68,6 +126,9 @@ help_text = unlines $
        , ("exit",  "Exits the Command Prompt.")
        , ("start", "Initiates a game."        )
        , ("stop",  "Stops a game."            )
+       , ("move src des",  "Moving a piece from src <rowcol> to des <rowcol>."            )
+       , ("save fname",  "Saving a game."            )
+       , ("save fname",  "Loading a game."            )
        ]
   where
     prettyCmdHelp :: (String, String) -> String

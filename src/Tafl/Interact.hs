@@ -25,7 +25,10 @@ repl st = do
   where
     doREPL :: GameState -> IO ()
     doREPL st = do
-      putStr "tafl> "
+      if inGame st
+        then if gameTurn st == Objects then putStr "tafl game O>" else
+          putStr "tafl game L>"
+      else putStr "tafl> "
       raw_cmd <- getLine
       result  <- processCommandStr st raw_cmd
       case result of
