@@ -165,9 +165,4 @@ placePiece inBoard (rowIndex, colIndex) newType = newGameBoard
   where
     targetRow =  inBoard !! rowIndex
     modifiedRow = (take colIndex targetRow) ++ pieceToString newType ++ (drop (colIndex+1) targetRow)
-<<<<<<< HEAD
     newGameBoard = (take rowIndex inBoard) ++ [modifiedRow] ++ (drop(rowIndex+1)inBoard)
-=======
-    newGameBoard = (take rowIndex (gameBoard inState)) ++ [modifiedRow] ++ (drop(rowIndex+1)(gameBoard inState))
-    newState = inState{gameBoard = newGameBoard}
->>>>>>> eb6cdcf1c5e1352c15361c9e963e5fc69ffb9713
