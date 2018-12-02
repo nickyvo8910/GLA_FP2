@@ -55,13 +55,13 @@ processCommand st (Move src des) = do
         if (length(src)/=2 ||length(des)/=2 ) then do pure $ Left (MalformedCommand)
           else
             do
-              -- putStr("Source: " ++ src )
-              -- putStrLn(show $ locToPiece st (stringToLoc src))
-              -- putStr("Des: " ++ des )
-              -- putStrLn(show $ locToPiece st (stringToLoc des))
-              --
-              -- putStr("Validity: ")
-              -- putStrLn (show (isValidPath st (stringToLoc src) (stringToLoc des)))
+              putStr("Source: " ++ src )
+              putStrLn(show $ locToPiece st (stringToLoc src))
+              putStr("Des: " ++ des )
+              putStrLn(show $ locToPiece st (stringToLoc des))
+
+              putStr("Validity: ")
+              putStrLn (show (isValidPath st (stringToLoc src) (stringToLoc des)))
 
               if (isValidPath st (stringToLoc src) (stringToLoc des))
                 then
@@ -69,7 +69,7 @@ processCommand st (Move src des) = do
                     let afterMoveSt = doMoving st (stringToLoc src) (stringToLoc des)
                     let newSt = switchSide afterMoveSt
                     putStrLn ("Move Successful")
-                    -- putStrLn (stateToString afterMoveSt)
+                    putStrLn (stateToString afterMoveSt)
                     pure $ Right afterMoveSt
                 else
                   do
