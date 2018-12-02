@@ -55,14 +55,15 @@ processCommand st (Move src des) = do
         if (length(src)/=2 ||length(des)/=2 ) then do pure $ Left (MalformedCommand)
           else
             do
-              -- putStr("Source: " ++ src )
-              -- putStrLn(show $ locToPiece st (stringToLoc src))
-              -- putStr("Des: " ++ des )
-              -- putStrLn(show $ locToPiece st (stringToLoc des))
-              --
-              -- putStr("Validity: ")
-              -- putStrLn (show (isValidPath st (stringToLoc src) (stringToLoc des)))
+              putStr("Source: " ++ src )
+              putStrLn(show $ locToPiece st (stringToLoc src))
+              putStr("Des: " ++ des )
+              putStrLn(show $ locToPiece st (stringToLoc des))
 
+              putStr("Validity: ")
+              putStrLn (show (isValidPath st (stringToLoc src) (stringToLoc des)))
+
+<<<<<<< HEAD
               -- Check if the srcTYpe matches the turn
               let srcLoc = stringToLoc src
               let desLoc = stringToLoc des
@@ -86,6 +87,21 @@ processCommand st (Move src des) = do
                   else do pure $ Left (InvalidMove)
               else do pure $ Left (InvalidMove)
     else do pure $ Left (NotReadyCommand)
+=======
+              if (isValidPath st (stringToLoc src) (stringToLoc des))
+                then
+                  do
+                    let afterMoveSt = doMoving st (stringToLoc src) (stringToLoc des)
+                    let newSt = switchSide afterMoveSt
+                    putStrLn ("Move Successful")
+                    putStrLn (stateToString afterMoveSt)
+                    pure $ Right afterMoveSt
+                else
+                  do
+                    pure $ Left (InvalidMove)
+    else
+     do pure $ Left (NotReadyCommand)
+>>>>>>> eb6cdcf1c5e1352c15361c9e963e5fc69ffb9713
 
 processCommand st (Save fname) = do
   if(inGame st == True)
