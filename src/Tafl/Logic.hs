@@ -15,7 +15,7 @@ module Tafl.Logic
   ,getPiecesOnPath
   ,pathGen
   ) where
-import Tafl.Core
+import           Tafl.Core
 --------------Game Logic-----------
 
 -- DATA FORMATING & CONVERSION

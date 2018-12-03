@@ -9,10 +9,10 @@ module Tafl.Process
   , printError
   ) where
 
-import System.Exit
+import           System.Exit
 
-import Tafl.Core
-import Tafl.Logic
+import           Tafl.Core
+import           Tafl.Logic
 
 -- | Process user commands and updates the GameState.
 -- Returns a `TaflError`
@@ -86,31 +86,27 @@ processCommand st (Move src des)
 
 processCommand st (Save fname) =
   if inGame st
-    then
-      do
-        putStrLn ("State saved in " ++ fname)
-        pure $ Right st
+    then do
+      putStrLn ("State saved in " ++ fname)
+      pure $ Right st
     else pure $ Left NotReadyCommand
 
 processCommand st (Load fname) =
   if not(inGame st)
-    then
-      do
-        let newSt = st {inGame=True}
-        putStrLn ("State loaded from " ++ fname)
-        pure $ Right newSt
+    then do
+      let newSt = st {inGame=True}
+      putStrLn ("State loaded from " ++ fname)
+      pure $ Right newSt
     else pure $ Left NotReadyCommand
 
 processCommand st Show =
   if inGame st
-    then
-      do
-        putStrLn (stateToString st)
-        pure $ Right st
-    else
-      do
-        putStrLn (stateToString st)
-        pure $ Left NotReadyCommand
+    then do
+      putStrLn (stateToString st)
+      pure $ Right st
+    else do
+      putStrLn (stateToString st)
+      pure $ Left NotReadyCommand
 
 processCommand st _ = pure $ Left UnknownCommand
 

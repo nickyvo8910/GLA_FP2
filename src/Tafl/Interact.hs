@@ -7,11 +7,11 @@ module Tafl.Interact
   ( repl
   ) where
 
-import System.Exit
-import System.IO
+import           System.Exit
+import           System.IO
 
-import Tafl.Core
-import Tafl.Process
+import           Tafl.Core
+import           Tafl.Process
 
 
 -- | Core REPL for processing user actions.

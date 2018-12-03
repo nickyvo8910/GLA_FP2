@@ -9,9 +9,9 @@ module Tafl.Options
   , parseGameOptions
   ) where
 
-import Data.Monoid ((<>))
+import           Data.Monoid         ((<>))
 
-import Options.Applicative
+import           Options.Applicative
 
 cmdParser  :: Parser GameOptions
 cmdParser = GameOptions
@@ -35,6 +35,6 @@ parseGameOptions = execParser opts
 
 data GameOptions =
   GameOptions {
-      inTestMode  :: Bool
-    , initState   :: Maybe FilePath
+      inTestMode :: Bool
+    , initState  :: Maybe FilePath
     }
