@@ -22,11 +22,15 @@ import Data.List
 --
 -- You will need to extend this to present the board.
 
---Represent pieces on the game board
+
 type Loc = (Int, Int)
+  -- Represent a location (square) on the gameboard
 data Piece = O | G | L | X | E | R deriving (Show, Read, Eq, Ord)
+  -- Types of Pieces on the board with addiontional R for error catching
 data Side = Lambdas | Objects deriving (Show,Eq)
+  --Represent 2 sides of the game
 type Board = [String]
+  --Represent the gameBoard
 
 data GameState = GameState
   { inGame     :: Bool
@@ -35,15 +39,6 @@ data GameState = GameState
   , gameBoard  :: Board
   }
 
-  -- defaultGamePlacing =["EEEOOOEEE",
-  --                     "EEEEOEEEE",
-  --                     "EEEEGEEEE",
-  --                     "OEEEGEEEO",
-  --                     "OOGGLGGOO",
-  --                     "OEEEGEEEO",
-  --                     "EEEEGEEEE",
-  --                     "EEEEOEEEE",
-  --                     "EEEOOOEEE"]
 defaultGamePlacing =["   OOO   ",
                     "    O    ",
                     "    G    ",
@@ -96,10 +91,6 @@ commandFromString (':':rest) =
     ["load",fname] ->Right (Load fname)
     ["save",fname] ->Right (Save fname)
 
-    ["move",_] -> Left MalformedCommand
-    ["load",_] -> Left MalformedCommand
-    ["save",_] -> Left MalformedCommand
-
     ["show"] -> Right Show
 
 
@@ -118,9 +109,10 @@ help_text = unlines $
        , ("exit",  "Exits the Command Prompt.")
        , ("start", "Initiates a game."        )
        , ("stop",  "Stops a game."            )
+       , ("show",  "Show the current status of a game."            )
        , ("move src des",  "Moving a piece from src <rowcol> to des <rowcol>."            )
-       , ("save fname",  "Saving a game."            )
-       , ("save fname",  "Loading a game."            )
+       , ("save fname",  "Saving a game. -- NotYetImplemented"            )
+       , ("load fname",  "Loading a game. -- NotYetImplemented"            )
        ]
   where
     prettyCmdHelp :: (String, String) -> String

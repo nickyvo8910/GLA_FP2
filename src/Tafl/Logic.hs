@@ -10,28 +10,18 @@ module Tafl.Logic
   ,locToPiece
   ,stringToLoc
   ,isValidPath
-  ,isMoveUnobstructed
+  ,isNoObtascle
   ,doMoving
+  ,getPiecesOnPath
+  ,pathGen
   ) where
 import Tafl.Core
 --------------Game Logic-----------
 
---Switching side after each move
-switchSide :: GameState -> GameState
-switchSide inState = inState{gameTurn = (if gameTurn inState == Lambdas then Objects else Lambdas)}
+-- DATA FORMATING & CONVERSION
 
---Board to string
+--Converting PieceType and Repesentative Character/String
 
-boardToString :: [String] -> String
-boardToString inBoard =  " abcdefghi \n" ++ unlines(zipWith (++) ["9","8","7","6","5","4","3","2","1"] inBoard)
-
---State to string
-stateToString :: GameState -> String
-stateToString inState = do
-                          let boardString = boardToString $ gameBoard inState
-                          show(gameTurn inState)++" to play\n"++boardString
-
---Converting PieceType and Repesentative Character
 charToPiece :: Char -> Piece
 charToPiece char
  | char == 'O' = O
@@ -40,25 +30,6 @@ charToPiece char
  | char == 'X' = X
  | char == ' ' = E
  | otherwise = R
-
-stringToPiece:: String -> Piece
-stringToPiece str
- | str == "O" = O
- | str == "G" = G
- | str == "L" = L
- | str == "X" = X
- | str == " " = E
- | str == "E" = E
- | otherwise = R
-
-pieceToChar :: Piece ->Char
-pieceToChar pType
- | pType == O = 'O'
- | pType == G = 'G'
- | pType == L = 'L'
- | pType == X = 'X'
- | pType == E = ' '
- | otherwise = 'R'
 
 pieceToString :: Piece ->String
 pieceToString pType
@@ -84,55 +55,11 @@ locToPiece inState (letter, no) = charToPiece ((gameBoard inState) !! no !! lett
 isValidLoc :: Loc -> Bool
 isValidLoc (rowIndex, colIndex) =  rowIndex >= 0 && rowIndex <= 8 && colIndex >= 0 && colIndex <= 8
 
---Checking if there is a piece at a specific location
-isAPiece :: GameState ->  Loc -> Bool
-isAPiece inState loc = (/=) E $ locToPiece inState loc
+-- MOVE FUNCTIONALITY
 
---Checking if the piece would move AKA not diagonal or stay the same place
-isMoving :: Loc -> Loc -> Bool
-isMoving (srcRow, srcCol) (desRow, desCol) = (srcRow /= srcCol) || (srcRow /= srcCol)
-
---Checking if the path between 2 locations is a straight line
-isMovingStraight :: Loc -> Loc -> Bool
-isMovingStraight (srcRow, srcCol) (desRow, desCol) = (srcRow == desRow) || (srcCol == desCol)
-
---Checking if the desination is not the castle
-isNotToCastle :: Loc -> Bool
-isNotToCastle (desRow, desCol) = not( (==) (5,5) (desRow, desCol))
-
-hasLambdaMoved :: GameState ->Bool
-hasLambdaMoved inState = (/=) ((gameBoard inState !! 5) !! 5) 'L'
-
-
---Cheking is there is any obstacle on the path (Not Empty AKA anything but E)
-isNoObtascle :: GameState -> Loc ->Loc ->Bool
-isNoObtascle inState src des = all (== E) (getPiecesOnPath inState (pathGen src des))
-
-isMoveUnobstructed :: GameState -> Loc ->Loc -> Bool
-isMoveUnobstructed st (a, b) (x, y) =
-  -- check all squares in path are empty
-  foldl (\res sq -> res && (locToPiece st sq == E)) True (pathGen (a, b) (x, y))
-    -- where
-    --   -- list of squares between src and dst, including dst
-    --   path = if a == x
-    --     -- +1 and -1 omits the src square from the path
-    --     then [show (((gameBoard st) !! a) !! i)| i <- [((min (b+1) y))..(max (b-1) y)]]
-    --     else [show (((gameBoard st) !! i) !! b)| i <- [((min (a+1) x))..(max (a-1) x)]]
-
-  -- Subfunction : pathGen --> getting the path between 2 locations (smaller coordinates first)
-pathGen :: Loc -> Loc -> [Loc]
-pathGen (srcRow, srcCol) (desRow, desCol) =
-  if srcRow == desRow
-    then if srcCol <desCol
-      then drop 1 $ zip [srcRow,srcRow..srcRow][srcCol..desCol]
-      else init $ zip [srcRow,srcRow..srcRow][desCol..srcCol]
-  else if srcRow < desRow
-    then drop 1 $ zip [srcRow..desRow][srcCol,srcCol..srcCol]
-    else init $ zip [desRow..srcRow][srcCol,srcCol..srcCol]
-
-  --Subfunction getPiecesOnPath --> get all the pieces on the path
-getPiecesOnPath :: GameState -> [Loc] -> [Piece]
-getPiecesOnPath inState path = map (locToPiece inState) path
+--Switching side after each move
+switchSide :: GameState -> GameState
+switchSide inState = inState{gameTurn = (if gameTurn inState == Lambdas then Objects else Lambdas)}
 
 --check if a path is valid
   --start with a piece
@@ -147,27 +74,79 @@ getPiecesOnPath inState path = map (locToPiece inState) path
 isValidPath :: GameState ->Loc ->Loc -> Bool
 isValidPath inState src des = isAPiece inState src && isNotToCastle des
                               && isValidLoc src && isValidLoc des
-                              && isMovingStraight src des && isMoveUnobstructed inState src des
-                              && (if isCrossCentral $pathGen src des then hasLambdaMoved inState else True)
+                              && isMovingStraight src des && isNoObtascle inState src des
+                              && (not (isCrossCentral $pathGen src des) || hasLambdaMoved inState)
 
---Sub function : isCrossCentral --> Check if the path crosses e5
-isCrossCentral :: [Loc] ->Bool
-isCrossCentral path = elem (5,5) path
-
---TO MOVE
---set src to E
---set des to <TYPE>
---return GameState
+  --TO MOVE
+  --set src to E
+  --set des to <TYPE>
+  --return GameState
 doMoving:: GameState -> Loc -> Loc -> GameState
 doMoving inState src des = newGameState
   where
     srcType = locToPiece inState src
     newGameBoard = placePiece (placePiece (gameBoard inState) src E) des srcType
     newGameState = inState{gameBoard =newGameBoard}
-  --Subfunction placePiece --> Placing a piece on the board
+--Subfunction placePiece --> Placing a piece on the board
 placePiece :: Board -> Loc -> Piece -> Board
 placePiece inBoard (rowIndex, colIndex) newType = newGameBoard
   where
     targetRow =  inBoard !! rowIndex
-    modifiedRow = (take colIndex targetRow) ++ pieceToString newType ++ (drop (colIndex+1) targetRow)
-    newGameBoard = (take rowIndex inBoard) ++ [modifiedRow] ++ (drop(rowIndex+1)inBoard)
+    modifiedRow = take colIndex targetRow ++ pieceToString newType ++ drop (colIndex+1) targetRow
+    newGameBoard = take rowIndex inBoard ++ [modifiedRow] ++ drop (rowIndex+1) inBoard
+
+-- Subfunction :getting the path between 2 locations
+pathGen :: Loc -> Loc -> [Loc]
+pathGen (srcRow, srcCol) (desRow, desCol)
+  |srcRow == desRow =
+    if srcCol <desCol
+      then drop 1 $ zip [srcRow,srcRow..srcRow][srcCol..desCol]
+    else init $ zip [srcRow,srcRow..srcRow][desCol..srcCol]
+  |srcRow < desRow = drop 1 $ zip [srcRow..desRow][srcCol,srcCol..srcCol]
+  |otherwise  =  init $ zip [desRow..srcRow][srcCol,srcCol..srcCol]
+
+--Subfunction getPiecesOnPath --> get all the pieces on the path
+getPiecesOnPath :: GameState -> [Loc] -> [Piece]
+getPiecesOnPath inState path = map (locToPiece inState) path
+
+--Subfunction :Cheking is there is any obstacle on the path (Not Empty AKA anything but E)
+isNoObtascle :: GameState -> Loc ->Loc ->Bool
+isNoObtascle inState src des = all (== E) (getPiecesOnPath inState (pathGen src des))
+
+
+
+--Subfunction :Checking if there is a piece at a specific location
+isAPiece :: GameState ->  Loc -> Bool
+isAPiece inState loc = (/=) E $ locToPiece inState loc
+
+--Subfunction :Checking if the piece would move AKA not diagonal or stay the same place
+isMoving :: Loc -> Loc -> Bool
+isMoving (srcRow, srcCol) (desRow, desCol) = (srcRow /= srcCol) || (srcRow /= srcCol)
+
+--Subfunction :Checking if the path between 2 locations is a straight line
+isMovingStraight :: Loc -> Loc -> Bool
+isMovingStraight (srcRow, srcCol) (desRow, desCol) = (srcRow == desRow) || (srcCol == desCol)
+
+--Subfunction :Checking if the desination is not the castle
+isNotToCastle :: Loc -> Bool
+isNotToCastle (desRow, desCol) = not( (==) (5,5) (desRow, desCol))
+
+--Sub function : isCrossCentral --> Check if the path crosses e5
+isCrossCentral :: [Loc] ->Bool
+isCrossCentral path = (5, 5) `elem` path
+
+--Subfunction : Check if the central lambda has moved away from the castle
+hasLambdaMoved :: GameState ->Bool
+hasLambdaMoved inState = (/=) ((gameBoard inState !! 5) !! 5) 'L'
+
+-- TO STRING METHODS
+--Board to string
+
+boardToString :: [String] -> String
+boardToString inBoard =  " abcdefghi \n" ++ unlines(zipWith (++) ["9","8","7","6","5","4","3","2","1"] inBoard)
+
+--State to string
+stateToString :: GameState -> String
+stateToString inState = do
+                          let boardString = boardToString $ gameBoard inState
+                          show(gameTurn inState)++" to play\n"++boardString

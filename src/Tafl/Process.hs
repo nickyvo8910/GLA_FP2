@@ -27,85 +27,87 @@ processCommand st Exit = do
   putStrLn "Good Bye!"
   exitWith ExitSuccess
 
-processCommand st Start = do
-  if(inGame st == True)
-    then do pure $ Left (InvalidCommand "Can't Start")
-    else
-     do
-       let newSt = (defaultGameState){inGame=True}
-       putStrLn "Starting Game."
-       -- putStrLn (stateToString newSt)
-       pure $ Right newSt
+processCommand st Start =
+  if inGame st
+    then pure $ Left (InvalidCommand "Can't Start")
+    else do
+      let newSt = (defaultGameState){inGame=True}
+      putStrLn "Starting Game."
+      pure $ Right newSt
 
-processCommand st Stop = do
-  if(inGame st == False)
-    then do pure $ Left (InvalidCommand "Can't Stop")
-    else
-      do
-        let newSt = defaultGameState
-        putStrLn "Stopping Game."
-        pure $ Right newSt
+processCommand st Stop =
+  if not (inGame st)
+    then pure $ Left (InvalidCommand "Can't Stop")
+    else do
+      let newSt = defaultGameState
+      putStrLn "Stopping Game."
+      pure $ Right newSt
 
 -- The remaining commands are to be added here.
 
-processCommand st (Move src des) = do
-  if(inGame st == True)
-    then
-      if (length(src)/=2 ||length(des)/=2 ) then do pure $ Left (MalformedCommand)
-        else
-          do
-            putStr("Source: " ++ src )
-            putStrLn(show $ locToPiece st (stringToLoc src))
-            putStr("Des: " ++ des )
-            putStrLn(show $ locToPiece st (stringToLoc des))
-            putStr("Validity: ")
-            putStrLn (show (isValidPath st (stringToLoc src) (stringToLoc des)))
+processCommand st (Move src des) =
+  if not (inGame st)
+    then pure $ Left NotReadyCommand
+    else
+      if length src /=2 ||length des /=2  then pure $ Left MalformedCommand
+        else do
+          --THIS IS FOR DEBUGGING --
 
-            -- Check if the srcTYpe matches the turn
-            let srcLoc = stringToLoc src
-            let desLoc = stringToLoc des
+          -- putStr("Source: " ++ src )
+          -- putStrLn(show $ locToPiece st (stringToLoc src))
+          -- putStr("Des: " ++ des )
+          -- putStrLn(show $ locToPiece st (stringToLoc des))
+          -- putStr("Validity: ")
+          -- putStrLn (show (isValidPath st (stringToLoc src) (stringToLoc des)))
+          -- putStr("getPiecesOnPath: ")
+          -- let path = map (show) $ getPiecesOnPath st (pathGen (stringToLoc src) (stringToLoc des))
+          -- putStrLn (unlines(path))
 
-            let srcType = locToPiece st (stringToLoc src)
+          --END OF DEBUGGING CODE
 
+          -- Check if the source type matches the turn
+          -- (aka Objects cannot move Lambdas pieces and otherwise)
+          let srcLoc = stringToLoc src
+          let desLoc = stringToLoc des
+          let srcType = locToPiece st (stringToLoc src)
 
-            if (srcType == O && gameTurn st == Objects)||(srcType == L && gameTurn st == Lambdas)||(srcType == G && gameTurn st == Lambdas)
-              then
-                -- Check if the path is valid
-                if isValidPath st srcLoc desLoc
-                  then do
-                    putStrLn ("Move Successful")
-                      --DoMoving
-                    let newMove = doMoving st srcLoc desLoc
-                      --DoCapture
+          if (srcType == O && gameTurn st == Objects)||(srcType == L && gameTurn st == Lambdas)||(srcType == G && gameTurn st == Lambdas)
+            then
+              -- Check if the path is valid
+              -- (aka there are only E pieces on the path)
+              if isValidPath st srcLoc desLoc
+                then do
+                  putStrLn ("Move Successful")
+                  --DoMoving
+                  let newMove = doMoving st srcLoc desLoc
+                  --DoCapture (NotYetImplemented)
+                  --switchSide
+                  let newSide = switchSide newMove
+                  pure $ Right newSide
+              --Invalid Path
+              else do pure $ Left InvalidMove
+          --Invalid Turn
+          else do pure $ Left InvalidMove
 
-                      --switchSide
-                    let newSide = switchSide newMove
-                    pure $ Right newSide
-                else do pure $ Left (InvalidMove)
-            else do pure $ Left (InvalidMove)
-  else do pure $ Left (NotReadyCommand)
-
-processCommand st (Save fname) = do
-  if(inGame st == True)
+processCommand st (Save fname) =
+  if inGame st
     then
       do
         putStrLn ("State saved in " ++ fname)
         pure $ Right st
-    else
-      do pure $ Left (NotReadyCommand)
+    else pure $ Left NotReadyCommand
 
-processCommand st (Load fname) = do
-  if(inGame st == False)
+processCommand st (Load fname) =
+  if not(inGame st)
     then
       do
         let newSt = st {inGame=True}
         putStrLn ("State loaded from " ++ fname)
         pure $ Right newSt
-    else
-      do pure $ Left (NotReadyCommand)
+    else pure $ Left NotReadyCommand
 
-processCommand st (Show) = do
-  if(inGame st == True)
+processCommand st (Show) =
+  if inGame st
     then
       do
         putStrLn (stateToString st)
@@ -113,9 +115,9 @@ processCommand st (Show) = do
     else
       do
         putStrLn (stateToString st)
-        pure $ Left (NotReadyCommand)
+        pure $ Left NotReadyCommand
 
-processCommand st _ = pure $ Left (UnknownCommand)
+processCommand st _ = pure $ Left UnknownCommand
 
 
 
@@ -132,15 +134,15 @@ processCommandStr st str =
 
 -- | Print an Error to STDOUT.
 printError :: TaflError -> IO ()
-printError (InvalidMove) = do
+printError InvalidMove =
   putStrLn "Invalid Move!"
-printError (NotYetImplemented) = do
+printError (NotYetImplemented) =
   putStrLn "Not Yet Implemented."
-printError (UnknownCommand) = do
+printError (UnknownCommand) =
   putStrLn "The command was not recognised"
-printError (MalformedCommand) = do
+printError MalformedCommand =
   putStrLn "The entered command was malformed."
-printError (NotReadyCommand) = do
+printError NotReadyCommand =
   putStrLn "The command cannot be used."
 printError (InvalidCommand msg) = do
   putStrLn "You entered an invalid command:"
