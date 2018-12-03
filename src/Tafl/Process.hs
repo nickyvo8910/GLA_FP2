@@ -25,13 +25,13 @@ processCommand st Help = do
   pure $ Right st
 processCommand st Exit = do
   putStrLn "Good Bye!"
-  exitWith ExitSuccess
+  exitWith ExitSuccess -- Skeleton Code
 
 processCommand st Start =
   if inGame st
     then pure $ Left (InvalidCommand "Can't Start")
     else do
-      let newSt = (defaultGameState){inGame=True}
+      let newSt = defaultGameState{inGame=True}
       putStrLn "Starting Game."
       pure $ Right newSt
 
@@ -45,13 +45,12 @@ processCommand st Stop =
 
 -- The remaining commands are to be added here.
 
-processCommand st (Move src des) =
-  if not (inGame st)
-    then pure $ Left NotReadyCommand
-    else
-      if length src /=2 ||length des /=2  then pure $ Left MalformedCommand
-        else do
-          --THIS IS FOR DEBUGGING --
+processCommand st (Move src des)
+  | inGame st = pure $ Left NotReadyCommand
+  | length src /=2 ||length des /=2 = pure $ Left MalformedCommand
+  | otherwise =
+        do
+          --THIS IS FOR DEBUGGING -- KNOWN ERROR 
 
           -- putStr("Source: " ++ src )
           -- putStrLn(show $ locToPiece st (stringToLoc src))
@@ -67,27 +66,23 @@ processCommand st (Move src des) =
 
           -- Check if the source type matches the turn
           -- (aka Objects cannot move Lambdas pieces and otherwise)
+          -- Check if the path is valid
+          -- (aka there are only E pieces on the path)
           let srcLoc = stringToLoc src
           let desLoc = stringToLoc des
           let srcType = locToPiece st (stringToLoc src)
 
-          if (srcType == O && gameTurn st == Objects)||(srcType == L && gameTurn st == Lambdas)||(srcType == G && gameTurn st == Lambdas)
-            then
-              -- Check if the path is valid
-              -- (aka there are only E pieces on the path)
-              if isValidPath st srcLoc desLoc
-                then do
-                  putStrLn ("Move Successful")
-                  --DoMoving
-                  let newMove = doMoving st srcLoc desLoc
-                  --DoCapture (NotYetImplemented)
-                  --switchSide
-                  let newSide = switchSide newMove
-                  pure $ Right newSide
-              --Invalid Path
-              else do pure $ Left InvalidMove
-          --Invalid Turn
-          else do pure $ Left InvalidMove
+          if isValidPath st srcLoc desLoc && (srcType == O && gameTurn st == Objects)||(srcType == L && gameTurn st == Lambdas)||(srcType == G && gameTurn st == Lambdas)
+            then do
+              putStrLn "Move Successful"
+              --DoMoving
+              let newMove = doMoving st srcLoc desLoc
+              --DoCapture  --> NotYetImplemented
+              --switchSide
+              let newSide = switchSide newMove
+              pure $ Right newSide
+          --Invalid Turn or Path
+          else pure $ Left InvalidMove
 
 processCommand st (Save fname) =
   if inGame st
@@ -106,7 +101,7 @@ processCommand st (Load fname) =
         pure $ Right newSt
     else pure $ Left NotReadyCommand
 
-processCommand st (Show) =
+processCommand st Show =
   if inGame st
     then
       do
@@ -136,9 +131,9 @@ processCommandStr st str =
 printError :: TaflError -> IO ()
 printError InvalidMove =
   putStrLn "Invalid Move!"
-printError (NotYetImplemented) =
+printError NotYetImplemented =
   putStrLn "Not Yet Implemented."
-printError (UnknownCommand) =
+printError UnknownCommand =
   putStrLn "The command was not recognised"
 printError MalformedCommand =
   putStrLn "The entered command was malformed."

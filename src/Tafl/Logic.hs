@@ -49,7 +49,7 @@ stringToLoc (col:row) = (rowIndex, colIndex)
 
 --Getting the chess piece at a specific location
 locToPiece:: GameState -> Loc -> Piece
-locToPiece inState (letter, no) = charToPiece ((gameBoard inState) !! no !! letter)
+locToPiece inState (letter, no) = charToPiece (gameBoard inState !! no !! letter)
 
 --Checking if the location is in the range (0~8)
 isValidLoc :: Loc -> Bool
@@ -59,7 +59,7 @@ isValidLoc (rowIndex, colIndex) =  rowIndex >= 0 && rowIndex <= 8 && colIndex >=
 
 --Switching side after each move
 switchSide :: GameState -> GameState
-switchSide inState = inState{gameTurn = (if gameTurn inState == Lambdas then Objects else Lambdas)}
+switchSide inState = inState{gameTurn = if gameTurn inState == Lambdas then Objects else Lambdas}
 
 --check if a path is valid
   --start with a piece

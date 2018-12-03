@@ -102,7 +102,7 @@ commandFromString _  = Left UnknownCommand
 
 
 help_text :: String
-help_text = unlines $
+help_text = unlines $  -- Skeleton Code
      [ "Tafl Help text:", ""]
   ++ map prettyCmdHelp
        [ ("help",  "Displays this help text." )
