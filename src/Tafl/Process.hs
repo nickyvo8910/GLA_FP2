@@ -46,11 +46,11 @@ processCommand st Stop =
 -- The remaining commands are to be added here.
 
 processCommand st (Move src des)
-  | inGame st = pure $ Left NotReadyCommand
+  | not (inGame st) = pure $ Left NotReadyCommand
   | length src /=2 ||length des /=2 = pure $ Left MalformedCommand
   | otherwise =
         do
-          --THIS IS FOR DEBUGGING -- KNOWN ERROR 
+          --THIS IS FOR DEBUGGING -- KNOWN ERROR
 
           -- putStr("Source: " ++ src )
           -- putStrLn(show $ locToPiece st (stringToLoc src))
